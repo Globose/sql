@@ -1,30 +1,12 @@
+use dv1664;
+
 -- 1. USER DEFINED FUNCTIONS
 -- 1. Create a function that checks if a car is available for renting between two dates.
 -- The input to the function should be the starting and ending dates of the rental,
 -- the cars number, and it should return 0 if it is not available and 1 if it is available between the two dates.
 drop function available_for_renting;
 DELIMITER //
-CREATE FUNCTION available_for_renting (car_num INT, date_start DATE, date_end DATE)
-RETURNS INT
-READS SQL DATA
-BEGIN
-	DECLARE var INT DEFAULT 1;
-    SELECT 0 INTO var FROM Cars WHERE CarNumber = car_num AND CarNumber IN (
-		SELECT CarNumber FROM Bookings WHERE StartDate <= date_end AND EndDate >= date_start
-    );
-RETURN var;
-END; //
-DELIMITER ;
-
-SELECT available_for_renting(13,'2018-01-01', '2018-01-19');
-
--- 1 (sol.2). USER DEFINED FUNCTIONS
--- 1. Create a function that checks if a car is available for renting between two dates.
--- The input to the function should be the starting and ending dates of the rental,
--- the cars number, and it should return 0 if it is not available and 1 if it is available between the two dates.
-drop function available_for_renting_2;
-DELIMITER //
-CREATE FUNCTION available_for_renting_2 (car_num INT, date_start DATE, date_end DATE) RETURNS INT
+CREATE FUNCTION available_for_renting (car_num INT, date_start DATE, date_end DATE) RETURNS INT
 READS SQL DATA
 BEGIN
 	DECLARE count_bookings INT;
@@ -42,23 +24,23 @@ RETURN var;
 END; //
 DELIMITER ;
 
-SELECT available_for_renting_2(13,'2018-01-01', '2018-01-21');
+SELECT available_for_renting(13,'2018-01-01', '2018-01-19');
 
 
 -- 2. Create a function that sums the total amount of days cars have been booked and returns the sum.
-DROP FUNCTION sum_booked_days_2;
+DROP FUNCTION sum_booked_days;
 DELIMITER //
-CREATE FUNCTION sum_booked_days_2()
+CREATE FUNCTION sum_booked_days()
 RETURNS INT
 READS SQL DATA
 BEGIN
 	DECLARE var_sum INT;
-	SELECT SUM(DATEDIFF(EndDate,StartDate)) INTO var_sum FROM Bookings;
+	SELECT SUM(DATEDIFF(EndDate,StartDate)+1) INTO var_sum FROM Bookings;
 	RETURN var_sum;
 END; //
 DELIMITER ;
 
-SELECT sum_booked_days_2();
+SELECT sum_booked_days();
 
 -- 3. Extend the previous function so that if there is an input parameter that matches a 
 -- cars unique number, then it should only return the sum of the car. If the number 
@@ -71,7 +53,7 @@ READS SQL DATA
 BEGIN
 	DECLARE var_sum INT DEFAULT sum_booked_days();
     IF (car_num IN (SELECT CarNumber FROM Cars)) THEN
-		SELECT SUM(DATE(EndDate) - DATE(StartDate)) INTO var_sum FROM Bookings WHERE CarNumber = car_num;
+		SELECT SUM(DATEDIFF(EndDate,StartDate)+1) INTO var_sum FROM Bookings WHERE CarNumber = car_num;
 	END IF;
 	IF (var_sum IS NULL) THEN 
 		SELECT 0 INTO var_sum;
@@ -80,5 +62,5 @@ RETURN var_sum;
 END; //
 DELIMITER ;
 
-SELECT sum_booked_days_num(4);
+SELECT sum_booked_days_num(1);
 
